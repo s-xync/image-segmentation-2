@@ -1,11 +1,12 @@
-from cv2 import imread, imwrite
+import cv2
 import numpy as np
+from skimage.feature import local_binary_pattern
 
 
 def getInputImageMatrix(imageName):
     # without giving a flag, imread will take in only
     # RGB channels and will leave transperancy out
-    imageMatrix = imread(imageName)
+    imageMatrix = cv2.imread(imageName)
     return imageMatrix.astype(float)
 
 
@@ -17,7 +18,7 @@ def saveOutputImage(clusterMatrix, clusterCenters, imageName):
         for j in range(width):
             outputImageMatrix[i][j] = clusterCenters[clusterMatrix[i][j]]
     outputImageMatrix = outputImageMatrix.astype(np.uint8)
-    imwrite(imageName, outputImageMatrix)
+    cv2.imwrite(imageName, outputImageMatrix)
     return
 
 
@@ -55,30 +56,42 @@ def buildFeatureMatrix(inputImageMatrix, redColorFlag, greenColorFlag,
                 featureMatrix[i, j, track_depth] = i
         track_depth += 1
 
+    # if textureFlag:
+    #     greyImageMatrix = (
+    #         inputImageMatrix[:, :, 0] + inputImageMatrix[:, :, 1] +
+    #         inputImageMatrix[:, :, 2]) / 3
+    #     assert greyImageMatrix.shape[0] == height and greyImageMatrix.shape[
+    #         1] == width, "Dimensions must be same."
+    #     for i in range(1, height - 1):
+    #         for j in range(1, width - 1):
+    #             featureMatrix[i, j, track_depth] = np.std(
+    #                 np.array([[
+    #                     greyImageMatrix[i - 1, j - 1],
+    #                     greyImageMatrix[i - 1, j],
+    #                     greyImageMatrix[i - 1, j + 1]
+    #                 ],
+    #                           [
+    #                               greyImageMatrix[i, j - 1],
+    #                               greyImageMatrix[i, j],
+    #                               greyImageMatrix[i, j + 1]
+    #                           ],
+    #                           [
+    #                               greyImageMatrix[i + 1, j - 1],
+    #                               greyImageMatrix[i + 1, j],
+    #                               greyImageMatrix[i + 1, j + 1]
+    #                           ]]))
+    #     track_depth += 1
+
     if textureFlag:
+        # local binary pattern as texture
         greyImageMatrix = (
             inputImageMatrix[:, :, 0] + inputImageMatrix[:, :, 1] +
             inputImageMatrix[:, :, 2]) / 3
         assert greyImageMatrix.shape[0] == height and greyImageMatrix.shape[
             1] == width, "Dimensions must be same."
-        for i in range(1, height - 1):
-            for j in range(1, width - 1):
-                featureMatrix[i, j, track_depth] = np.std(
-                    np.array([[
-                        greyImageMatrix[i - 1, j - 1],
-                        greyImageMatrix[i - 1, j],
-                        greyImageMatrix[i - 1, j + 1]
-                    ],
-                              [
-                                  greyImageMatrix[i, j - 1],
-                                  greyImageMatrix[i, j],
-                                  greyImageMatrix[i, j + 1]
-                              ],
-                              [
-                                  greyImageMatrix[i + 1, j - 1],
-                                  greyImageMatrix[i + 1, j],
-                                  greyImageMatrix[i + 1, j + 1]
-                              ]]))
+        textureImageMatrix = local_binary_pattern(
+            greyImageMatrix, 8, 1, method="uniform")
+        featureMatrix[:, :, track_depth] = textureImageMatrix
         track_depth += 1
 
     assert track_depth == depth, "Dimensions must be same."
