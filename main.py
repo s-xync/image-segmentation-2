@@ -1,50 +1,56 @@
 from time import time
 from os import path
+from utils import getInputImageMatrix, saveOutputImage, buildFeatureMatrix
 
 
 def main():
-    temp_var = input("\nImage Filename: ")
-    assert isinstance(temp_var, str), "Input should be a string."
-    assert path.isfile(temp_var), "Input should be a valid filename."
-    image_filename = temp_var
+    tempVar = input("\nImage Filename: ")
+    assert isinstance(tempVar, str), "Input should be a string."
+    assert path.isfile(tempVar), "Input should be a valid filename."
+    imageFilename = tempVar
 
-    temp_var = input("\nNo. of Clusters: ")
-    assert temp_var.isdigit(), "Input should be a positive integer."
-    assert int(temp_var) > 0, "Input should be greater than zero."
-    no_clusters = int(temp_var)
+    tempVar = input("\nNo. of Clusters: ")
+    assert tempVar.isdigit(), "Input should be a positive integer."
+    assert int(tempVar) > 0, "Input should be greater than zero."
+    noClusters = int(tempVar)
 
-    temp_var = input("\nNo. of Iterations: ")
-    assert temp_var.isdigit(), "Input should be a positive integer."
-    assert int(temp_var) > 0, "Input should be greater than zero."
-    no_iterations = int(temp_var)
+    tempVar = input("\nNo. of Iterations: ")
+    assert tempVar.isdigit(), "Input should be a positive integer."
+    assert int(tempVar) > 0, "Input should be greater than zero."
+    noIterations = int(tempVar)
 
     print("\nWhich features do you want in the feature vector?")
 
-    temp_var = input("Red Color (y/n): ")
-    assert temp_var == "y" or temp_var == "n", "Input shoud be either 'y' or 'n'."
-    red_color = True if temp_var == "y" else False
+    tempVar = input("Red Color (y/n): ")
+    assert tempVar == "y" or tempVar == "n", "Input shoud be either 'y' or 'n'."
+    redColorFlag = True if tempVar == "y" else False
 
-    temp_var = input("Green Color (y/n): ")
-    assert temp_var == "y" or temp_var == "n", "Input shoud be either 'y' or 'n'."
-    green_color = True if temp_var == "y" else False
+    tempVar = input("Green Color (y/n): ")
+    assert tempVar == "y" or tempVar == "n", "Input shoud be either 'y' or 'n'."
+    greenColorFlag = True if tempVar == "y" else False
 
-    temp_var = input("Blue Color (y/n): ")
-    assert temp_var == "y" or temp_var == "n", "Input shoud be either 'y' or 'n'."
-    blue_color = True if temp_var == "y" else False
+    tempVar = input("Blue Color (y/n): ")
+    assert tempVar == "y" or tempVar == "n", "Input shoud be either 'y' or 'n'."
+    blueColorFlag = True if tempVar == "y" else False
 
-    temp_var = input("X-Coordinate (y/n): ")
-    assert temp_var == "y" or temp_var == "n", "Input shoud be either 'y' or 'n'."
-    x_cord = True if temp_var == "y" else False
+    tempVar = input("X-Coordinate (y/n): ")
+    assert tempVar == "y" or tempVar == "n", "Input shoud be either 'y' or 'n'."
+    xCordFlag = True if tempVar == "y" else False
 
-    temp_var = input("Y-Coordinate (y/n): ")
-    assert temp_var == "y" or temp_var == "n", "Input shoud be either 'y' or 'n'."
-    y_cord = True if temp_var == "y" else False
+    tempVar = input("Y-Coordinate (y/n): ")
+    assert tempVar == "y" or tempVar == "n", "Input shoud be either 'y' or 'n'."
+    yCordFlag = True if tempVar == "y" else False
 
-    temp_var = input("Texture (y/n): ")
-    assert temp_var == "y" or temp_var == "n", "Input shoud be either 'y' or 'n'."
-    texture_sd = True if temp_var == "y" else False
+    tempVar = input("Texture (y/n): ")
+    assert tempVar == "y" or tempVar == "n", "Input shoud be either 'y' or 'n'."
+    textureFlag = True if tempVar == "y" else False
 
     start = time()
+    inputImageMatrix = getInputImageMatrix(imageFilename)
+    featureMatrix = buildFeatureMatrix(inputImageMatrix, redColorFlag,
+                                       greenColorFlag, blueColorFlag,
+                                       xCordFlag, yCordFlag, textureFlag)
+    print(featureMatrix.shape)
     end = time()
     print("Time taken is {0}s".format(round(end - start, 1)))
 
