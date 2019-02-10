@@ -1,6 +1,7 @@
 from time import time
 from os import path
 from utils import getInputImageMatrix, saveOutputImage, buildFeatureMatrix
+from clustering import kmeans
 
 
 def main():
@@ -47,12 +48,28 @@ def main():
 
     start = time()
     inputImageMatrix = getInputImageMatrix(imageFilename)
-    featureMatrix = buildFeatureMatrix(inputImageMatrix, redColorFlag,
-                                       greenColorFlag, blueColorFlag,
-                                       xCordFlag, yCordFlag, textureFlag)
-    print(featureMatrix.shape)
+    print("")
+    print("Building feature matrix started.")
+    featureMatrix = buildFeatureMatrix(
+        inputImageMatrix,
+        redColorFlag,
+        greenColorFlag,
+        blueColorFlag,
+        xCordFlag,
+        yCordFlag,
+        textureFlag,
+    )
+    print("Building feature matrix completed.")
+    print("Kmeans clustering started.")
+    clusterMatrix = kmeans(featureMatrix, noClusters, noIterations)
+    print("Kmeans clustering completed.")
+    saveOutputImage(clusterMatrix, noClusters, "output_final.jpg")
     end = time()
-    print("Time taken is {0}s".format(round(end - start, 1)))
+    print(
+        "\n{0} kmeans clustering iteration(s) completed in {1}s.".format(
+            noIterations, round(end - start, 1)
+        )
+    )
 
 
 if __name__ == "__main__":

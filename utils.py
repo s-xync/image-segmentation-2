@@ -10,26 +10,44 @@ def getInputImageMatrix(imageName):
     return imageMatrix.astype(float)
 
 
-def saveOutputImage(clusterMatrix, clusterCenters, imageName):
-    height = clusterMatrix.shape[0]
-    width = clusterMatrix.shape[1]
+def saveOutputImage(clusterMatrix, noClusters, imageName):
+    height, width = clusterMatrix.shape
+    colorsList = []
+    for i in range(noClusters):
+        colorsList.append(list(np.random.choice(range(256), size=3)))
     outputImageMatrix = np.full((height, width, 3), 0)
     for i in range(height):
         for j in range(width):
-            outputImageMatrix[i][j] = clusterCenters[clusterMatrix[i][j]]
+            outputImageMatrix[i][j] = colorsList[clusterMatrix[i][j]]
     outputImageMatrix = outputImageMatrix.astype(np.uint8)
     cv2.imwrite(imageName, outputImageMatrix)
     return
 
 
-def buildFeatureMatrix(inputImageMatrix, redColorFlag, greenColorFlag,
-                       blueColorFlag, xCordFlag, yCordFlag, textureFlag):
-    depth = ((1 if redColorFlag else 0) + (1 if greenColorFlag else 0) +
-             (1 if blueColorFlag else 0) + (1 if xCordFlag else 0) +
-             (1 if yCordFlag else 0) + (1 if textureFlag else 0))
+def distanceBetweenPoints(featureVector1, featureVector2):
+    # return np.sqrt(np.sum((featureVector1 - featureVector2)**2))
+    return np.linalg.norm(featureVector1 - featureVector2)
 
-    height = inputImageMatrix.shape[0]
-    width = inputImageMatrix.shape[1]
+
+def buildFeatureMatrix(
+    inputImageMatrix,
+    redColorFlag,
+    greenColorFlag,
+    blueColorFlag,
+    xCordFlag,
+    yCordFlag,
+    textureFlag,
+):
+    depth = (
+        (1 if redColorFlag else 0)
+        + (1 if greenColorFlag else 0)
+        + (1 if blueColorFlag else 0)
+        + (1 if xCordFlag else 0)
+        + (1 if yCordFlag else 0)
+        + (1 if textureFlag else 0)
+    )
+
+    height, width, _ = inputImageMatrix.shape
     featureMatrix = np.zeros((height, width, depth))
     track_depth = 0
     if redColorFlag:
@@ -58,39 +76,51 @@ def buildFeatureMatrix(inputImageMatrix, redColorFlag, greenColorFlag,
 
     # if textureFlag:
     #     greyImageMatrix = (
-    #         inputImageMatrix[:, :, 0] + inputImageMatrix[:, :, 1] +
-    #         inputImageMatrix[:, :, 2]) / 3
-    #     assert greyImageMatrix.shape[0] == height and greyImageMatrix.shape[
-    #         1] == width, "Dimensions must be same."
+    #         inputImageMatrix[:, :, 0]
+    #         + inputImageMatrix[:, :, 1]
+    #         + inputImageMatrix[:, :, 2]
+    #     ) / 3
+    #     assert (
+    #         greyImageMatrix.shape[0] == height and greyImageMatrix.shape[1] == width
+    #     ), "Dimensions must be same."
     #     for i in range(1, height - 1):
     #         for j in range(1, width - 1):
     #             featureMatrix[i, j, track_depth] = np.std(
-    #                 np.array([[
-    #                     greyImageMatrix[i - 1, j - 1],
-    #                     greyImageMatrix[i - 1, j],
-    #                     greyImageMatrix[i - 1, j + 1]
-    #                 ],
-    #                           [
-    #                               greyImageMatrix[i, j - 1],
-    #                               greyImageMatrix[i, j],
-    #                               greyImageMatrix[i, j + 1]
-    #                           ],
-    #                           [
-    #                               greyImageMatrix[i + 1, j - 1],
-    #                               greyImageMatrix[i + 1, j],
-    #                               greyImageMatrix[i + 1, j + 1]
-    #                           ]]))
+    #                 np.array(
+    #                     [
+    #                         [
+    #                             greyImageMatrix[i - 1, j - 1],
+    #                             greyImageMatrix[i - 1, j],
+    #                             greyImageMatrix[i - 1, j + 1],
+    #                         ],
+    #                         [
+    #                             greyImageMatrix[i, j - 1],
+    #                             greyImageMatrix[i, j],
+    #                             greyImageMatrix[i, j + 1],
+    #                         ],
+    #                         [
+    #                             greyImageMatrix[i + 1, j - 1],
+    #                             greyImageMatrix[i + 1, j],
+    #                             greyImageMatrix[i + 1, j + 1],
+    #                         ],
+    #                     ]
+    #                 )
+    #             )
     #     track_depth += 1
 
     if textureFlag:
         # local binary pattern as texture
         greyImageMatrix = (
-            inputImageMatrix[:, :, 0] + inputImageMatrix[:, :, 1] +
-            inputImageMatrix[:, :, 2]) / 3
-        assert greyImageMatrix.shape[0] == height and greyImageMatrix.shape[
-            1] == width, "Dimensions must be same."
+            inputImageMatrix[:, :, 0]
+            + inputImageMatrix[:, :, 1]
+            + inputImageMatrix[:, :, 2]
+        ) / 3
+        assert (
+            greyImageMatrix.shape[0] == height and greyImageMatrix.shape[1] == width
+        ), "Dimensions must be same."
         textureImageMatrix = local_binary_pattern(
-            greyImageMatrix, 8, 1, method="uniform")
+            greyImageMatrix, 8, 1, method="uniform"
+        )
         featureMatrix[:, :, track_depth] = textureImageMatrix
         track_depth += 1
 
