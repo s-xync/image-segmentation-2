@@ -61,9 +61,9 @@ def main():
     )
     print("Building feature matrix completed.")
     print("Kmeans clustering started.")
-    clusterMatrix = kmeans(featureMatrix, noClusters, noIterations)
+    clusterMatrix, colorsList = kmeans(featureMatrix, noClusters, noIterations)
     print("Kmeans clustering completed.")
-    saveOutputImage(clusterMatrix, noClusters, "output_final.jpg")
+    saveOutputImage(clusterMatrix, noClusters, colorsList, "output_final.jpg")
     end = time()
     print(
         "\n{0} kmeans clustering iteration(s) completed in {1}s.".format(

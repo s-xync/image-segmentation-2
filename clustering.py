@@ -9,7 +9,9 @@ def kmeans(featureMatrix, noClusters, noIterations):
     puts together calculateClusterMatrix & calculateClusterCenters
     """
     height, width, _ = featureMatrix.shape
-    clusterCenters = pickRandomClusterCenters(featureMatrix, noClusters, height, width)
+    clusterCenters, colorsList = pickRandomClusterCentersAndColors(
+        featureMatrix, noClusters, height, width
+    )
     # clusterMatrix = calculateClusterMatrix(featureMatrix, clusterCenters, noClusters)
     for i in range(noIterations):
         start = time()
@@ -19,19 +21,25 @@ def kmeans(featureMatrix, noClusters, noIterations):
         clusterCenters = calculateClusterCenters(
             featureMatrix, clusterMatrix, noClusters
         )
-        saveOutputImage(clusterMatrix, noClusters, "output_" + str(i) + ".jpg")
+        saveOutputImage(
+            clusterMatrix, noClusters, colorsList, "output_" + str(i) + ".jpg"
+        )
         end = time()
         print("{0} iteration completed in {1}s.".format(i + 1, round(end - start, 1)))
 
-    return clusterMatrix
+    return clusterMatrix, colorsList
 
 
-def pickRandomClusterCenters(featureMatrix, noClusters, height, width):
+def pickRandomClusterCentersAndColors(featureMatrix, noClusters, height, width):
     clusterCenters = []
     for _ in range(noClusters):
         clusterCenters.append(featureMatrix[randint(0, height), randint(0, width), :])
 
-    return clusterCenters
+    colorsList = []
+    for i in range(noClusters):
+        colorsList.append(list(np.random.choice(range(256), size=3)))
+
+    return clusterCenters, colorsList
 
 
 def calculateClusterMatrix(featureMatrix, clusterCenters, noClusters):
