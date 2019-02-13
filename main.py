@@ -2,7 +2,7 @@ from time import time
 from os import path
 import cv2
 import numpy as np
-from skimage.feature import local_binary_pattern
+# from skimage.feature import local_binary_pattern
 from random import randint
 
 
@@ -135,15 +135,15 @@ def buildFeatureMatrix(
     featureMatrix = np.zeros((height, width, depth))
     track_depth = 0
     if redColorFlag:
-        featureMatrix[:, :, track_depth] = inputImageMatrix[:, :, 0] / 255 * 50
+        featureMatrix[:, :, track_depth] = inputImageMatrix[:, :, 0] / 255 * 1
         track_depth += 1
 
     if greenColorFlag:
-        featureMatrix[:, :, track_depth] = inputImageMatrix[:, :, 1] / 255 * 50
+        featureMatrix[:, :, track_depth] = inputImageMatrix[:, :, 1] / 255 * 1
         track_depth += 1
 
     if blueColorFlag:
-        featureMatrix[:, :, track_depth] = inputImageMatrix[:, :, 2] / 255 * 50
+        featureMatrix[:, :, track_depth] = inputImageMatrix[:, :, 2] / 255 * 1
         track_depth += 1
 
     if xCordFlag:
