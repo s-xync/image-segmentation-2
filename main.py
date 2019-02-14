@@ -84,7 +84,7 @@ def getInputImageMatrix(imageName):
 def saveOutputImage(clusterMatrix, noClusters, inputImageMatrix, imageName):
     height, width = clusterMatrix.shape
     outputImageMatrix = np.full((height, width, 3), 0)
-    colorsList = []
+    ''' colorsList = []
     eachClusterSize = []
     for i in range(noClusters):
         colorsList.append(np.array([0.0, 0.0, 0.0]))
@@ -96,7 +96,9 @@ def saveOutputImage(clusterMatrix, noClusters, inputImageMatrix, imageName):
             eachClusterSize[clusterMatrix[i, j]] += 1
 
     for i in range(noClusters):
-        colorsList[i] /= eachClusterSize[i]
+        colorsList[i] /= eachClusterSize[i] '''
+    #clusterMatrix , noClusters , colorsList = calculateColorForClustersWithoutOptimization(clusterMatrix, noClusters, inputImageMatrix, imageName)
+    clusterMatrix , noClusters , colorsList = calculateColorForClusters(clusterMatrix, noClusters, inputImageMatrix, imageName)
 
     for i in range(height):
         for j in range(width):
@@ -221,7 +223,7 @@ def kmeans(featureMatrix, noClusters, noIterations, inputImageMatrix):
     puts together calculateClusterMatrix & calculateClusterCenters
     """
     height, width, _ = featureMatrix.shape
-    clusterCenters = pickRandomClusterCentersAndColors(
+    clusterCenters = pickPsuedoRandomClusterCentersAndColors(
         featureMatrix, noClusters, height, width
     )
     # clusterMatrix = calculateClusterMatrix(featureMatrix, clusterCenters, noClusters)
@@ -249,6 +251,15 @@ def pickRandomClusterCentersAndColors(featureMatrix, noClusters, height, width):
 
     return clusterCenters
 
+def pickPsuedoRandomClusterCentersAndColors(featureMatrix, noClusters, height, width):
+    clusterCenters = []
+    blockHeight = 0
+    blockWidth = 0
+    for _ in range(noClusters):
+        clusterCenters.append(featureMatrix[randint(blockHeight, int(( blockHeight + (height / noClusters) ) % height) - 1), randint(blockWidth, int(( blockWidth + (width / noClusters) - 1 ) % width)), :])
+        blockHeight = int((blockHeight + (height / noClusters)) % height) - 1
+        blockWidth = int(( blockWidth + (width / noClusters) ) % width) - 1
+    return clusterCenters
 
 def calculateClusterMatrix(featureMatrix, clusterCenters, noClusters):
     """
@@ -289,6 +300,66 @@ def calculateClusterCenters(featureMatrix, clusterMatrix, noClusters):
 
     return clusterCenters
 
+
+def calculateColorForClusters(clusterMatrix, noClusters, inputImageMatrix, imageName):
+    threshold = 10
+    height, width = clusterMatrix.shape
+    temp = 0
+    while (temp == 0):
+        temp = 1
+        colorsList = []
+        eachClusterSize = []
+        for i in range(noClusters):
+            colorsList.append(np.array([0.0, 0.0, 0.0]))
+            eachClusterSize.append(0)
+
+        for i in range(height):
+            for j in range(width):
+                colorsList[clusterMatrix[i, j]] += inputImageMatrix[i, j]
+                eachClusterSize[clusterMatrix[i, j]] += 1
+
+        for i in range(noClusters):
+            if eachClusterSize[i] != 0:
+                colorsList[i] /= eachClusterSize[i]
+
+        for i in range(noClusters):
+            for j in range(i+1,noClusters):
+                distanceBetweenClusters = np.linalg.norm(colorsList[i] - colorsList[j])
+                if distanceBetweenClusters < threshold :
+                    clusterMatrix, noClusters = changeClusterMatrix(clusterMatrix, min(i,j),max(i,j) , noClusters)
+                    temp = 0
+                    break;
+
+            if distanceBetweenClusters < threshold :
+                break;
+    return clusterMatrix , noClusters , colorsList
+
+def changeClusterMatrix(clusterMatrix, minimum , maximum , noClusters):
+    height, width = clusterMatrix.shape
+    for i in range(height):
+        for j in range(width):
+            if clusterMatrix[i][j] > maximum:
+                clusterMatrix[i][j] -= 1
+            elif clusterMatrix[i][j] == maximum:
+                clusterMatrix[i][j] = minimum
+    return clusterMatrix , noClusters - 1
+
+def calculateColorForClustersWithoutOptimization(clusterMatrix, noClusters, inputImageMatrix, imageName):
+    height, width = clusterMatrix.shape
+    colorsList = []
+    eachClusterSize = []
+    for i in range(noClusters):
+        colorsList.append(np.array([0.0, 0.0, 0.0]))
+        eachClusterSize.append(0)
+
+    for i in range(height):
+        for j in range(width):
+            colorsList[clusterMatrix[i, j]] += inputImageMatrix[i, j]
+            eachClusterSize[clusterMatrix[i, j]] += 1
+
+    for i in range(noClusters):
+        colorsList[i] /= eachClusterSize[i]
+    return clusterMatrix , noClusters , colorsList
 
 if __name__ == "__main__":
     main()
